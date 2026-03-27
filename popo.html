@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>信念破除術：取代演示</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            cursor: pointer;
+        }
+
+        /* 共通場景樣式 */
+        .scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        /* 起始畫面：半獸人大軍 (雨夜、陰暗) */
+        #limiting-belief {
+            z-index: 2;
+            /* 建議替換成您的半獸人圖片路徑 */
+            background-image: url('https://images.unsplash.com/photo-1533928298208-27ff66555d8d?q=80&w=2070&auto=format&fit=crop'); 
+            filter: grayscale(0.5) contrast(1.2) brightness(0.6);
+        }
+
+        /* 取代畫面：白袍巫師甘道夫 (耶穌光、正義大軍) */
+        #empowering-belief {
+            z-index: 1;
+            /* 建議替換成您的甘道夫圖片路徑 */
+            background-image: url('https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=2094&auto=format&fit=crop');
+            opacity: 0;
+            transform: scale(1.1);
+            transition: opacity 2.5s ease, transform 4s ease;
+        }
+
+        #empowering-belief.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* 碎裂特效粒子 */
+        .particle {
+            position: absolute;
+            background: rgba(40, 40, 40, 0.9);
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            pointer-events: none;
+            z-index: 3;
+            clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+        }
+
+        @keyframes shake {
+            0% { transform: translate(2px, 2px); }
+            20% { transform: translate(-2px, -4px); }
+            40% { transform: translate(-6px, 0px); }
+            60% { transform: translate(2px, 4px); }
+            80% { transform: translate(2px, -4px); }
+            100% { transform: translate(0, 0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" onclick="shatterEffect(this)">
+    <div id="limiting-belief" class="scene"></div>
+
+    <div id="empowering-belief" class="scene"></div>
+</div>
+
+<script>
+    function shatterEffect(container) {
+        const darkScene = document.getElementById('limiting-belief');
+        const lightScene = document.getElementById('empowering-belief');
+        
+        // 防止重複點擊
+        if (lightScene.classList.contains('active')) return;
+
+        // 產生碎裂粒子 (模擬畫面碎掉)
+        const particleCount = 60;
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            const size = Math.random() * 80 + 40;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            
+            particle.style.left = Math.random() * window.innerWidth + 'px';
+            particle.style.top = Math.random() * window.innerHeight + 'px';
+            
+            container.appendChild(particle);
+
+            const destX = (Math.random() - 0.5) * 1500;
+            const destY = (Math.random() - 0.5) * 1500;
+            const rotation = Math.random() * 1080;
+
+            particle.animate([
+                { transform: 'translate(0, 0) rotate(0deg)', opacity: 1 },
+                { transform: `translate(${destX}px, ${destY}px) rotate(${rotation}deg)`, opacity: 0 }
+            ], {
+                duration: 1200 + Math.random() * 800,
+                easing: 'cubic-bezier(0.1, 0.8, 0.2, 1)',
+                fill: 'forwards'
+            });
+
+            setTimeout(() => particle.remove(), 2500);
+        }
+
+        // 執行畫面切換
+        darkScene.style.opacity = '0';
+        lightScene.classList.add('active');
+        
+        // 畫面震動增強真實感
+        container.style.animation = 'shake 0.3s ease-in-out';
+        setTimeout(() => {
+            container.style.animation = '';
+            darkScene.style.display = 'none';
+        }, 1500);
+    }
+</script>
+
+</body>
+</html>
