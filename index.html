@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>信念破除術：無限可能</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            cursor: pointer;
+        }
+
+        /* 共通場景樣式 */
+        .scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        /* 起始畫面：半獸人大軍 (雨夜、陰暗) */
+        #limiting-belief {
+            z-index: 2;
+            /* 保留您的半獸人示意圖 */
+            background-image: url('https://images.unsplash.com/photo-1533928298208-27ff66555d8d?q=80&w=2070&auto=format&fit=crop'); 
+            filter: grayscale(0.5) contrast(1.2) brightness(0.6);
+        }
+
+        /* 取代畫面：初始為空白，由 JS 隨機載入圖片 */
+        #empowering-belief {
+            z-index: 1;
+            /* 移除原有的甘道夫圖片 */
+            background-color: #fff; /* 防止圖片載入前的閃爍 */
+            opacity: 0;
+            transform: scale(1.1);
+            transition: opacity 2s ease, transform 3s ease;
+        }
+
+        #empowering-belief.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* 碎裂特效粒子 */
+        .particle {
+            position: absolute;
+            background: rgba(40, 40, 40, 0.9);
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            pointer-events: none;
+            z-index: 3;
+            clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+        }
+
+        @keyframes shake {
+            0% { transform: translate(2px, 2px); }
+            20% { transform: translate(-2px, -4px); }
+            40% { transform: translate(-6px, 0px); }
+            60% { transform: translate(2px, 4px); }
+            80% { transform: translate(2px, -4px); }
+            100% { transform: translate(0, 0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" onclick="shatterEffect(this)">
+    <div id="limiting-belief" class="scene"></div>
+
+    <div id="empowering-belief" class="scene"></div>
+</div>
+
+<script>
+    // 12 個美好事物圖片連結陣列 (Unsplash 高畫質)
+    // 包含：星空、銀河、耶穌光、日出、美車、美女、美好自然、愉悅人事物
+    const beautifulImages = [
+        'https://images.unsplash.com/photo-1506318136925-a349d31a415d?q=80&w=2070&auto=format&fit=crop', // 1. 璀璨星空
+        'https://images.unsplash.com/photo-1596727147705-61a532a659bd?q=80&w=2070&auto=format&fit=crop', // 2. 壯闊銀河
+        'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop', // 3. 聖潔耶穌光
+        'https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?q=80&w=2070&auto=format&fit=crop', // 4. 海邊日出
+        'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2070&auto=format&fit=crop', // 5. 經典跑車
+        'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=2070&auto=format&fit=crop', // 6. 時尚美女 (肖像)
+        'https://images.unsplash.com/photo-1431032843975-eedf6a15e342?q=80&w=2070&auto=format&fit=crop', // 7. 寧靜森林瀑布
+        'https://images.unsplash.com/photo-1511988617509-a57c8a288659?q=80&w=2070&auto=format&fit=crop', // 8. 朋友們的愉快聚會
+        'https://images.unsplash.com/photo-1490730141103-6cac27aaab94?q=80&w=2070&auto=format&fit=crop', // 9. 絢麗夕陽彩霞
+        'https://images.unsplash.com/photo-1518005020251-eea17c1851e3?q=80&w=2070&auto=format&fit=crop', // 10. 現代超跑
+        'https://images.unsplash.com/photo-1581382575275-97901c2635b7?q=80&w=2070&auto=format&fit=crop', // 11. 陽光型男 (肖像)
+        'https://images.unsplash.com/photo-1461696113031-1cc4e677365d?q=80&w=2070&auto=format&fit=crop'  // 12. 寧靜雪山湖泊
+    ];
+
+    function shatterEffect(container) {
+        const darkScene = document.getElementById('limiting-belief');
+        const lightScene = document.getElementById('empowering-belief');
+        
+        // 防止重複點擊
+        if (lightScene.classList.contains('active')) return;
+
+        // 【新增的核心邏輯】隨機挑選一張圖片並設定為背景
+        const randomIndex = Math.floor(Math.random() * beautifulImages.length);
+        const selectedImageUrl = beautifulImages[randomIndex];
+        lightScene.style.backgroundImage = `url('${selectedImageUrl}')`;
+
+        // 產生碎裂粒子 (保留原有的酷炫特效)
+        const particleCount = 60;
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            const size = Math.random() * 80 + 40;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            
+            particle.style.left = Math.random() * window.innerWidth + 'px';
+            particle.style.top = Math.random() * window.innerHeight + 'px';
+            
+            container.appendChild(particle);
+
+            const destX = (Math.random() - 0.5) * 1500;
+            const destY = (Math.random() - 0.5) * 1500;
+            const rotation = Math.random() * 1080;
+
+            particle.animate([
+                { transform: 'translate(0, 0) rotate(0deg)', opacity: 1 },
+                { transform: `translate(${destX}px, ${destY}px) rotate(${rotation}deg)`, opacity: 0 }
+            ], {
+                duration: 1200 + Math.random() * 800,
+                easing: 'cubic-bezier(0.1, 0.8, 0.2, 1)',
+                fill: 'forwards'
+            });
+
+            setTimeout(() => particle.remove(), 2500);
+        }
+
+        // 執行畫面切換 (轉場時間稍作拉長，更有重生感)
+        darkScene.style.opacity = '0';
+        lightScene.classList.add('active');
+        
+        // 畫面震動增強真實感
+        container.style.animation = 'shake 0.3s ease-in-out';
+        setTimeout(() => {
+            container.style.animation = '';
+            // 切換完成後移除舊畫面，釋放記憶體
+            darkScene.style.display = 'none';
+        }, 1500);
+    }
+</script>
+
+</body>
+</html>
