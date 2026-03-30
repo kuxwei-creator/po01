@@ -97,10 +97,12 @@
         'images/09.jpg',
     ];
 
-    // --- 新增：計數器，用來記住現在該播哪一張 ---
-    let currentIndex = 0; 
+    // --- 關鍵修改：從瀏覽器記憶中讀取進度 ---
+    // 如果是第一次開啟，預設從 0 (第一張) 開始
+    let savedIndex = localStorage.getItem('belief_index');
+    let currentIndex = savedIndex ? parseInt(savedIndex) : 0;
 
-    // 預載圖片邏輯 (建議保留，讓切換更順暢)
+    // 預載圖片邏輯 (維持不變)
     const preloadedImages = [];
     function preload() {
         for (let i = 0; i < beautifulImages.length; i++) {
@@ -116,14 +118,17 @@
         
         if (lightScene.classList.contains('active')) return;
 
-        // --- 修改後的邏輯：按順序挑選 ---
+        // 1. 顯示目前的這一張美好畫面
         const selectedImageUrl = beautifulImages[currentIndex];
         lightScene.style.backgroundImage = `url('${selectedImageUrl}')`;
 
-        // 準備下一張的索引，如果到最後一張就回到 0
-        currentIndex = (currentIndex + 1) % beautifulImages.length;
+        // 2. 計算下一張的索引
+        let nextIndex = (currentIndex + 1) % beautifulImages.length;
 
-        // 碎裂粒子動畫 (維持不變)
+        // 3. 【核心步驟】將下一張的索引存入瀏覽器記憶體
+        localStorage.setItem('belief_index', nextIndex);
+
+        // 碎裂粒子動畫
         const particleCount = 60;
         for (let i = 0; i < particleCount; i++) {
             const particle = document.createElement('div');
