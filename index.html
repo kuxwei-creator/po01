@@ -97,18 +97,18 @@
         'images/09.jpg',
     ];
 
-    // --- 新增：預載圖片邏輯 ---
+    // --- 新增：計數器，用來記住現在該播哪一張 ---
+    let currentIndex = 0; 
+
+    // 預載圖片邏輯 (建議保留，讓切換更順暢)
     const preloadedImages = [];
     function preload() {
         for (let i = 0; i < beautifulImages.length; i++) {
             preloadedImages[i] = new Image();
             preloadedImages[i].src = beautifulImages[i];
         }
-        console.log("所有美好事物已預載完成");
     }
-    // 網頁開啟後立即開始預載
     window.onload = preload;
-    // ------------------------
 
     function shatterEffect(container) {
         const darkScene = document.getElementById('limiting-belief');
@@ -116,12 +116,12 @@
         
         if (lightScene.classList.contains('active')) return;
 
-        // 隨機選取
-        const randomIndex = Math.floor(Math.random() * beautifulImages.length);
-        const selectedImageUrl = beautifulImages[randomIndex];
-        
-        // 設定背景
+        // --- 修改後的邏輯：按順序挑選 ---
+        const selectedImageUrl = beautifulImages[currentIndex];
         lightScene.style.backgroundImage = `url('${selectedImageUrl}')`;
+
+        // 準備下一張的索引，如果到最後一張就回到 0
+        currentIndex = (currentIndex + 1) % beautifulImages.length;
 
         // 碎裂粒子動畫 (維持不變)
         const particleCount = 60;
@@ -150,7 +150,7 @@
             setTimeout(() => particle.remove(), 2500);
         }
 
-        // 切換畫面
+        // 執行切換
         darkScene.style.opacity = '0';
         lightScene.classList.add('active');
         
