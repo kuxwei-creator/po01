@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>信念破除術：自動循環版</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: "Microsoft JhengHei", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .blackboard-frame {
+            position: relative;
+            width: 90%;
+            height: 85%;
+            border: 15px solid #5d4037;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            /* 底層背景：潛意識冰山 */
+            background-image: url('https://images.unsplash.com/photo-1505322022379-7c3353ee6291?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        /* 共通場景樣式 */
+.scene {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* 關鍵修改：從 cover 改為 contain */
+    background-size: contain; 
+    /* 讓圖片顯示在中間 */
+    background-position: center; 
+    /* 圖片不重複顯示 */
+    background-repeat: no-repeat; 
+    transition: opacity 1s ease-in-out;
+}
+
+        /* 限制性信念：陀螺圖 */
+        #limiting-belief {
+            z-index: 3;
+            background-image: url('https://kuxwei-creator.github.io/po01/images/0331.jpg');
+        }
+
+        /* 美好畫面：07.jpg */
+        #empowering-belief {
+            z-index: 2;
+            background-image: url('https://kuxwei-creator.github.io/po01/images/07.jpg');
+            opacity: 0;
+        }
+
+        /* 板擦特效 */
+        #eraser-swipe {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.9), #fff);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* 執行動畫時的 Class */
+        .swiping {
+            animation: swipeAction 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes swipeAction {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .shake {
+            animation: shakeScreen 0.2s ease-in-out;
+        }
+
+        @keyframes shakeScreen {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(5px, 5px); }
+            75% { transform: translate(-5px, -5px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="blackboard-frame" id="main-container" onclick="breakBelief()">
+    <div id="empowering-belief" class="scene"></div>
+    <div id="limiting-belief" class="scene"></div>
+    <div id="eraser-swipe"></div>
+</div>
+
+<script>
+    // 預載圖片
+    window.onload = function() {
+        new Image().src = 'https://kuxwei-creator.github.io/po01/images/0331.jpg';
+        new Image().src = 'https://kuxwei-creator.github.io/po01/images/07.jpg';
+    };
+
+    function breakBelief() {
+        const container = document.getElementById('main-container');
+        const darkScene = document.getElementById('limiting-belief');
+        const lightScene = document.getElementById('empowering-belief');
+        const eraser = document.getElementById('eraser-swipe');
+
+        // 如果正在動畫中，防止重複點擊
+        if (eraser.classList.contains('swiping')) return;
+
+        // 1. 執行抹除與震動
+        eraser.classList.add('swiping');
+        container.classList.add('shake');
+
+        // 2. 顯示美好畫面 (07.jpg)
+        lightScene.style.opacity = '1';
+
+        // 3. 讓陀螺漸隱
+        setTimeout(() => {
+            darkScene.style.opacity = '0';
+        }, 400);
+
+        // 4. 動畫結束後的基本整理
+        setTimeout(() => {
+            container.classList.remove('shake');
+        }, 1000);
+
+        // --- 【新增：7秒後自動回復功能】 ---
+        setTimeout(() => {
+            resetToStart(darkScene, lightScene, eraser);
+        }, 7000); // 7000 毫秒 = 7 秒
+    }
+
+    // 重置函數
+    function resetToStart(dark, light, eraser) {
+        // 先讓板擦歸位 (無動畫)
+        eraser.classList.remove('swiping');
+        
+        // 讓陀螺圖重新出現
+        dark.style.opacity = '1';
+        
+        // 讓美好畫面隱藏
+        light.style.opacity = '0';
+
+        console.log("系統已自動重置為起始畫面，可再度練習。");
+    }
+</script>
+
+</body>
+</html>
