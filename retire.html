@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>退休倒數計時器</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Microsoft JhengHei, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        h1 { color: #2c3e50; font-size: 1.5rem; margin-bottom: 1rem; }
+        .days-container {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #e67e22;
+            margin: 1rem 0;
+        }
+        .unit { font-size: 1.2rem; color: #7f8c8d; margin-left: 5px; }
+        .info { color: #34495e; font-size: 1rem; line-height: 1.6; }
+        .target-date { font-weight: bold; color: #2980b9; }
+        hr { border: 0; border-top: 1px solid #eee; margin: 1.5rem 0; }
+        .footer { font-size: 0.8rem; color: #bdc3c7; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>🚩 退休目標倒數</h1>
+    <div class="info">
+        目標日期：<span class="target-date">2027年2月1日</span>
+    </div>
+    
+    <div class="days-container" id="workDays">--</div>
+    <div class="unit">剩餘工作天 (不含週末)</div>
+    
+    <hr>
+    
+    <div class="info" id="calendarInfo">
+        正在計算中...
+    </div>
+    
+    <div class="footer" style="margin-top: 20px;">
+        祝 退休生活精彩順利
+    </div>
+</div>
+
+<script>
+    function calculateWorkDays(startDate, endDate) {
+        let count = 0;
+        let curDate = new Date(startDate.getTime());
+        
+        // 將時間調至當天凌晨，避免時分秒干擾
+        curDate.setHours(0, 0, 0, 0);
+        let finalDate = new Date(endDate.getTime());
+        finalDate.setHours(0, 0, 0, 0);
+
+        while (curDate < finalDate) {
+            curDate.setDate(curDate.getDate() + 1);
+            let dayOfWeek = curDate.getDay();
+            // 0 是週日，6 是週六
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    function updateCountdown() {
+        const now = new Date();
+        const target = new Date(2027, 1, 1); // 月份從0開始，1代表2月
+        
+        const workDays = calculateWorkDays(now, target);
+        const totalDays = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+
+        document.getElementById('workDays').innerText = workDays;
+        document.getElementById('calendarInfo').innerHTML = 
+            `距離今天還有 <b>${totalDays}</b> 個日曆天<br>` +
+            `您只需再堅持 <b>${workDays}</b> 個上班日！`;
+    }
+
+    updateCountdown();
+</script>
+
+</body>
+</html>
