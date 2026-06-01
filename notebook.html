@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ 題庫快查筆記本</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --bg-color: #f5f7fa;
+            --text-color: #2c3e50;
+            --border-color: #dcdde1;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        /* 區塊共同樣式 */
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        /* 表單樣式 */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        textarea {
+            resize: vertical;
+            height: 100px;
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        /* 搜尋框樣式 */
+        .search-input {
+            border: 2px solid var(--primary-color);
+            font-size: 18px;
+            padding: 12px;
+        }
+
+        /* 列表樣式 */
+        .qa-item {
+            background: #f8f9fa;
+            border-left: 5px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 0 4px 4px 0;
+            position: relative;
+        }
+
+        .qa-question {
+            font-weight: bold;
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            padding-right: 60px;
+        }
+
+        .qa-answer {
+            color: #555;
+            white-space: pre-wrap; /* 保留換行 */
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: #e74c3c;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+
+        /* 工具列 */
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .btn-secondary {
+            background-color: #7f8c8d;
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+        .btn-secondary:hover {
+            background-color: #95a5a6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>⚡ 題庫快查筆記本</h1>
+
+    <div class="toolbar">
+        <button class="btn-secondary" onclick="exportData()">匯出備份 (JSON)</button>
+        <button class="btn-secondary" onclick="document.getElementById('importFile').click()">匯入資料</button>
+        <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
+    </div>
+
+    <div class="card">
+        <h3>➕ 新增問答</h3>
+        <div class="form-group">
+            <label for="question">題目 / 關鍵字</label>
+            <input type="text" id="question" placeholder="例如：開會通知怎麼寫？ 或 常用報表路徑">
+        </div>
+        <div class="form-group">
+            <label for="answer">答案 / 詳細內容</label>
+            <textarea id="answer" placeholder="請輸入對應的答案或詳細步驟..."></textarea>
+        </div>
+        <button onclick="addQA()">儲存資料</button>
+    </div>
+
+    <div class="card">
+        <h3>🔍 快速搜尋</h3>
+        <input type="text" id="search" class="search-input" placeholder="輸入題目關鍵字，即時連動搜尋..." oninput="renderList()">
+    </div>
+
+    <div id="qaList"></div>
+</div>
+
+<script>
+    // 初始化資料庫（若 localstorage 無資料則設為空陣列）
+    let qaDatabase = JSON.parse(localStorage.getItem('qaDatabase')) || [];
+
+    // 頁面載入時渲染列表
+    window.onload = function() {
+        renderList();
+    };
+
+    // 新增問答
+    function addQA() {
+        const qInput = document.getElementById('question');
+        const aInput = document.getElementById('answer');
+        
+        const question = qInput.value.trim();
+        const answer = aInput.value.trim();
+
+        if (!question || !answer) {
+            alert('題目與答案都填寫才能儲存喔！');
+            return;
+        }
+
+        // 建立資料物件
+        const newItem = {
+            id: Date.now(),
+            question: question,
+            answer: answer
+        };
+
+        // 存入陣列並更新 localStorage
+        qaDatabase.unshift(newItem); // 新增的排在最前面
+        saveData();
+
+        // 清空輸入欄位
+        qInput.value = '';
+        aInput.value = '';
+        
+        // 重新渲染列表
+        renderList();
+        
+        // 提示成功（可選，這邊用搜尋框聚焦代替）
+        document.getElementById('search').focus();
+    }
+
+    // 儲存至 localStorage
+    function saveData() {
+        localStorage.setItem('qaDatabase', JSON.stringify(qaDatabase));
+    }
+
+    // 刪除資料
+    function deleteQA(id) {
+        if (confirm('確定要刪除這筆資料嗎？')) {
+            qaDatabase = qaDatabase.filter(item => item.id !== id);
+            saveData();
+            renderList();
+        }
+    }
+
+    // 渲染與篩選列表
+    function renderList() {
+        const searchKeyword = document.getElementById('search').value.toLowerCase().trim();
+        const listContainer = document.getElementById('qaList');
+        listContainer.innerHTML = '';
+
+        // 篩選符合關鍵字的資料
+        const filteredData = qaDatabase.filter(item => {
+            return item.question.toLowerCase().includes(searchKeyword);
+        });
+
+        if (filteredData.length === 0) {
+            listContainer.innerHTML = '<p style="text-align:center; color:#95a5a6;">找不到相符的題目</p>';
+            return;
+        }
+
+        // 產生 HTML
+        filteredData.forEach(item => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'qa-item';
+            
+            // 突顯搜尋關鍵字 (可選功能，這邊做基本的純文字呈現)
+            itemDiv.innerHTML = `
+                <div class="qa-question">${escapeHtml(item.question)}</div>
+                <div class="qa-answer">${escapeHtml(item.answer)}</div>
+                <button class="delete-btn" onclick="deleteQA(${item.id})">刪除</button>
+            `;
+            listContainer.appendChild(itemDiv);
+        });
+    }
+
+    // 防止 XSS 攻擊的文字轉義
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // 備份功能：匯出 JSON
+    function exportData() {
+        if (qaDatabase.length === 0) {
+            alert('目前沒有資料可以匯出。');
+            return;
+        }
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(qaDatabase, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `QA_Backup_${new Date().toISOString().split('T')[0]}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    // 備份功能：匯入 JSON
+    function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const importedData = JSON.parse(e.target.result);
+                if (Array.isArray(importedData)) {
+                    if (confirm(`確定要匯入 ${importedData.length} 筆資料嗎？這將會與現有資料合併。`)) {
+                        // 合併並過濾重複的 id
+                        const idSet = new Set(qaDatabase.map(item => item.id));
+                        importedData.forEach(item => {
+                            if (!idSet.has(item.id)) {
+                                qaDatabase.push(item);
+                            }
+                        });
+                        // 依時間排序（新到舊）
+                        qaDatabase.sort((a, b) => b.id - a.id);
+                        saveData();
+                        renderList();
+                        alert('資料匯入成功！');
+                    }
+                } else {
+                    alert('檔案格式不正確，必須是問答陣列。');
+                }
+            } catch (err) {
+                alert('讀取檔案失敗，請確保它是正確的 JSON 備份檔。');
+            }
+        };
+        reader.readAsText(file);
+    }
+</script>
+
+</body>
+</html>
