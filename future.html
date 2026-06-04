@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的投資組合新舊市值對比監控</title>
+    <title>我的投資組合新舊市值與權重對比監控</title>
     <style>
         :root {
             --up-color: #ff3b30; /* 亮紅 */
@@ -26,8 +26,8 @@
             box-sizing: border-box;
         }
         .container {
-            width: 90%;
-            max-width: 900px;
+            width: 95%;
+            max-width: 1000px;
             background: var(--glass-bg);
             backdrop-filter: blur(10px);
             padding: 30px;
@@ -82,6 +82,7 @@
         }
         .profit { color: var(--up-color); font-weight: bold; }
         .loss { color: var(--down-color); font-weight: bold; }
+        .weight-text { color: #555; font-weight: 500; }
         
         .summary-box {
             display: flex;
@@ -150,6 +151,7 @@
                 <th>代號</th>
                 <th>股數</th>
                 <th>平均成本</th>
+                <th>成本佔比</th>
                 <th>目前市價 (請自行輸入)</th>
                 <th>損益 (報酬率)</th>
             </tr>
@@ -179,6 +181,7 @@
                 <th>代號</th>
                 <th>股數</th>
                 <th>平均成本</th>
+                <th>成本佔比</th>
                 <th>目前市價 (請自行輸入)</th>
                 <th>損益 (報酬率)</th>
             </tr>
@@ -223,26 +226,35 @@
     ];
 
     function init() {
+        // 先計算各組的總成本，以便在渲染表格時可以直接算出佔比
+        const pastTotalCost = pastStocks.reduce((sum, s) => sum + (s.shares * s.cost), 0);
+        const currentTotalCost = currentStocks.reduce((sum, s) => sum + (s.shares * s.cost), 0);
+
         // 渲染以前的持股
-        renderTable('past-stock-list', pastStocks, 'past');
+        renderTable('past-stock-list', pastStocks, 'past', pastTotalCost);
         // 渲染現在的持股
-        renderTable('current-stock-list', currentStocks, 'current');
+        renderTable('current-stock-list', currentStocks, 'current', currentTotalCost);
         
         // 執行初始計算
         calculate();
     }
 
-    function renderTable(tbodyId, stockArray, prefix) {
+    function renderTable(tbodyId, stockArray, prefix, groupTotalCost) {
         const tbody = document.getElementById(tbodyId);
         stockArray.forEach((stock, index) => {
             // 從 LocalStorage 嘗試抓取上次輸入的值，若無則預設為留空 ""
             const savedPrice = localStorage.getItem(`${prefix}_price_${stock.code}`) || "";
             
+            // 計算此股票的投入成本與佔該組總成本的比例
+            const myCost = stock.shares * stock.cost;
+            const weightPercent = groupTotalCost > 0 ? ((myCost / groupTotalCost) * 100).toFixed(2) : 0;
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><strong>${stock.code}</strong></td>
                 <td>${stock.shares.toLocaleString()}</td>
                 <td>${stock.cost.toLocaleString()}</td>
+                <td class="weight-text">${weightPercent}%</td>
                 <td><input type="number" step="0.01" value="${savedPrice}" placeholder="未輸入" id="${prefix}_price_${index}" oninput="calculate()"></td>
                 <td id="${prefix}_result_${index}">-</td>
             `;
