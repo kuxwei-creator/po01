@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的投資組合新舊市值對比監控</title>
+    <style>
+        :root {
+            --up-color: #ff3b30; /* 亮紅 */
+            --down-color: #28a745; /* 綠 */
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --primary-blue: rgba(0, 86, 179, 0.8);
+        }
+        body {
+            margin: 0;
+            padding: 20px 0;
+            min-height: 100vh;
+            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
+            background-image: url('https://chinesedora.com/news/wp-content/uploads/2023/04/202304-jp-wallpaper.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 90%;
+            max-width: 900px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            margin-bottom: 20px;
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 25px;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        }
+        .section-title {
+            font-size: 1.3em;
+            color: #0056b3;
+            border-left: 5px solid #0056b3;
+            padding-left: 10px;
+            margin: 25px 0 15px 0;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th {
+            background-color: rgba(0, 86, 179, 0.1);
+            color: #333;
+            padding: 12px;
+            border-bottom: 2px solid #0056b3;
+        }
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+        input[type="number"] {
+            width: 95px;
+            padding: 8px;
+            border: 2px solid #0056b3;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            background: white;
+        }
+        .profit { color: var(--up-color); font-weight: bold; }
+        .loss { color: var(--down-color); font-weight: bold; }
+        
+        .summary-box {
+            display: flex;
+            justify-content: space-between;
+            background: var(--primary-blue);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .summary-item {
+            flex: 1;
+            min-width: 130px;
+            text-align: center;
+        }
+        .summary-label {
+            font-size: 0.85em;
+            opacity: 0.9;
+            display: block;
+        }
+        .summary-value {
+            font-size: 1.25em;
+            font-weight: bold;
+            display: block;
+            margin-top: 5px;
+        }
+        .section-profit-box {
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        /* 差異比較區塊 */
+        .comparison-box {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+        .comparison-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        .comparison-diff {
+            font-size: 2.2em;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>哆啦A夢風格投資試算（前後對比版）</h2>
+    
+    <div class="section-title">📊 上半部：以前的持股組合</div>
+    <table>
+        <thead>
+            <tr>
+                <th>代號</th>
+                <th>股數</th>
+                <th>平均成本</th>
+                <th>目前市價 (請自行輸入)</th>
+                <th>損益 (報酬率)</th>
+            </tr>
+        </thead>
+        <tbody id="past-stock-list">
+            </tbody>
+    </table>
+    <div class="summary-box">
+        <div class="summary-item">
+            <span class="summary-label">前持股總投入</span>
+            <span id="past-total-cost" class="summary-value">$0</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">前持股估總市值</span>
+            <span id="past-total-market-value" class="summary-value">$0</span>
+        </div>
+        <div class="section-profit-box">
+            <span class="summary-label">前組合總盈虧</span>
+            <span id="past-total-profit" class="summary-value" style="font-size: 1.4em;">$0</span>
+        </div>
+    </div>
+
+    <div class="section-title">📈 下半部：現在的持股組合</div>
+    <table>
+        <thead>
+            <tr>
+                <th>代號</th>
+                <th>股數</th>
+                <th>平均成本</th>
+                <th>目前市價 (請自行輸入)</th>
+                <th>損益 (報酬率)</th>
+            </tr>
+        </thead>
+        <tbody id="current-stock-list">
+            </tbody>
+    </table>
+    <div class="summary-box">
+        <div class="summary-item">
+            <span class="summary-label">現持股總投入</span>
+            <span id="current-total-cost" class="summary-value">$0</span>
+        </div>
+        <div class="summary-item">
+            <span class="summary-label">現持股估總市值</span>
+            <span id="current-total-market-value" class="summary-value">$0</span>
+        </div>
+        <div class="section-profit-box">
+            <span class="summary-label">現組合總盈虧</span>
+            <span id="current-total-profit" class="summary-value" style="font-size: 1.4em;">$0</span>
+        </div>
+    </div>
+
+    <div class="comparison-box">
+        <div class="comparison-title">🔄 總市值成效差異比較 ( 現在總市值 - 以前總市值 )</div>
+        <div id="market-value-diff" class="comparison-diff">$0</div>
+    </div>
+</div>
+
+<script>
+    // 以前的持股數據
+    const pastStocks = [
+        { code: '0056', shares: 63345, cost: 37.91 },
+        { code: '00878', shares: 3780, cost: 21.91 }
+    ];
+
+    // 現在的持股數據
+    const currentStocks = [
+        { code: '006208', shares: 420, cost: 231.98 },
+        { code: '2330', shares: 765, cost: 2327.06 },
+        { code: '2454', shares: 72, cost: 4546.46 },
+        { code: '0056', shares: 18000, cost: 40.53 }
+    ];
+
+    function init() {
+        // 渲染以前的持股
+        renderTable('past-stock-list', pastStocks, 'past');
+        // 渲染現在的持股
+        renderTable('current-stock-list', currentStocks, 'current');
+        
+        // 執行初始計算
+        calculate();
+    }
+
+    function renderTable(tbodyId, stockArray, prefix) {
+        const tbody = document.getElementById(tbodyId);
+        stockArray.forEach((stock, index) => {
+            // 從 LocalStorage 嘗試抓取上次輸入的值，若無則預設為留空 ""
+            const savedPrice = localStorage.getItem(`${prefix}_price_${stock.code}`) || "";
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${stock.code}</strong></td>
+                <td>${stock.shares.toLocaleString()}</td>
+                <td>${stock.cost.toLocaleString()}</td>
+                <td><input type="number" step="0.01" value="${savedPrice}" placeholder="未輸入" id="${prefix}_price_${index}" oninput="calculate()"></td>
+                <td id="${prefix}_result_${index}">-</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function calculateGroup(stockArray, prefix) {
+        let totalCost = 0;
+        let totalMarketValue = 0;
+        let totalProfit = 0;
+        let hasInput = false; // 用於檢查使用者是否有填寫任何一個市價
+
+        stockArray.forEach((stock, index) => {
+            const inputEl = document.getElementById(`${prefix}_price_${index}`);
+            const currentPrice = parseFloat(inputEl.value);
+            
+            const costAmount = stock.shares * stock.cost;
+            totalCost += costAmount;
+
+            const resultCell = document.getElementById(`${prefix}_result_${index}`);
+
+            // 如果有輸入市價且大於 0 才會進行該檔股票的計算
+            if (!isNaN(currentPrice) && currentPrice > 0) {
+                hasInput = true;
+                localStorage.setItem(`${prefix}_price_${stock.code}`, currentPrice);
+
+                const marketValue = stock.shares * currentPrice;
+                const profit = marketValue - costAmount;
+                const percent = (profit / costAmount) * 100;
+
+                totalMarketValue += marketValue;
+                totalProfit += profit;
+
+                resultCell.innerHTML = `
+                    <div class="${profit >= 0 ? 'profit' : 'loss'}">
+                        ${profit >= 0 ? '+' : ''}${Math.round(profit).toLocaleString()}<br>
+                        (${percent >= 0 ? '+' : ''}${percent.toFixed(2)}%)
+                    </div>
+                `;
+            } else {
+                // 若被清空，清除儲存紀錄
+                localStorage.removeItem(`${prefix}_price_${stock.code}`);
+                resultCell.innerHTML = `<span style="color:#888;">等待輸入</span>`;
+            }
+        });
+
+        // 刷新該群組的面板數值
+        document.getElementById(`${prefix}-total-cost`).innerText = '$' + Math.round(totalCost).toLocaleString();
+        
+        const totalMarketValueEl = document.getElementById(`${prefix}-total-market-value`);
+        const totalProfitEl = document.getElementById(`${prefix}-total-profit`);
+
+        if (hasInput) {
+            totalMarketValueEl.innerText = '$' + Math.round(totalMarketValue).toLocaleString();
+            totalProfitEl.innerText = (totalProfit >= 0 ? '+' : '') + Math.round(totalProfit).toLocaleString();
+            totalProfitEl.style.color = totalProfit >= 0 ? '#ffeb3b' : '#00e676'; // 黃色代表賺、亮綠代表賠
+            return totalMarketValue; // 返回實際計算出的總市值
+        } else {
+            totalMarketValueEl.innerText = '-';
+            totalProfitEl.innerText = '$0';
+            totalProfitEl.style.color = 'white';
+            return 0; // 沒有輸入市價時，總市值視為 0
+        }
+    }
+
+    function calculate() {
+        // 計算以前組合的總市值
+        const pastMV = calculateGroup(pastStocks, 'past');
+        // 計算現在組合的總市值
+        const currentMV = calculateGroup(currentStocks, 'current');
+
+        // 計算前後總市值價差 (現在總市值 - 以前總市值)
+        const diff = currentMV - pastMV;
+        const diffEl = document.getElementById('market-value-diff');
+        
+        // 只有當兩邊都有輸入市價（市值大於0）時，才做有意義的對比
+        if (pastMV > 0 && currentMV > 0) {
+            if (diff > 0) {
+                diffEl.innerText = '現在市值較高：+' + Math.round(diff).toLocaleString();
+                diffEl.style.color = '#ffeb3b'; // 現在市值高用黃色
+            } else if (diff < 0) {
+                diffEl.innerText = '以前市值較高：' + Math.round(diff).toLocaleString();
+                diffEl.style.color = '#00e676'; // 以前市值高用亮綠色
+            } else {
+                diffEl.innerText = '$0 (兩者總市值相同)';
+                diffEl.style.color = 'white';
+            }
+        } else {
+            diffEl.innerText = '請同時輸入新舊組合的市價以進行比較';
+            diffEl.style.color = '#ccc';
+            diffEl.style.fontSize = '1.4em';
+        }
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>
