@@ -249,12 +249,14 @@
         { code: '00878', shares: 3780, cost: 21.91 }
     ];
 
-    // 現在的持股數據（已幫您新增 0050 在最後一行，之後可直接修改其數據）
+    // 現在的持股數據（已更新數據，並保留最下方的 0050 預備位）
     const currentStocks = [
         { code: '006208', shares: 420, cost: 231.98 },
-        { code: '2330', shares: 765, cost: 2327.06 },
-        { code: '2454', shares: 72, cost: 4546.46 },
+        { code: '2330', shares: 377, cost: 2393.46 },
+        { code: '2454', shares: 1, cost: 4280 },
         { code: '0056', shares: 18000, cost: 40.53 },
+        { code: '2330', shares: 392, cost: 2263.99 },
+        { code: '2454', shares: 72, cost: 4546.46 },
         { code: '0050', shares: 0, cost: 0 } 
     ];
 
@@ -276,7 +278,7 @@
         const tbody = document.getElementById(tbodyId);
         stockArray.forEach((stock, index) => {
             // 從 LocalStorage 嘗試抓取上次儲存的市價，若無則預設為留空 ""
-            const savedPrice = localStorage.getItem(`${prefix}_price_${stock.code}`) || "";
+            const savedPrice = localStorage.getItem(`${prefix}_price_${index}_${stock.code}`) || "";
             
             // 計算此股票的投入成本與佔該組總成本的比例
             const myCost = stock.shares * stock.cost;
@@ -377,39 +379,39 @@
         }
     }
 
-    // 【新增功能】點擊按鈕時，一口氣把畫面上所有的市價儲存至瀏覽器
+    // 點擊按鈕時，將市價儲存至瀏覽器（此處將 index 納入 Key 名稱以支援重複代號獨立儲存）
     function savePrices() {
         pastStocks.forEach((stock, index) => {
             const price = document.getElementById(`past_price_${index}`).value;
             if(price && parseFloat(price) > 0) {
-                localStorage.setItem(`past_price_${stock.code}`, price);
+                localStorage.setItem(`past_price_${index}_${stock.code}`, price);
             } else {
-                localStorage.removeItem(`past_price_${stock.code}`);
+                localStorage.removeItem(`past_price_${index}_${stock.code}`);
             }
         });
 
         currentStocks.forEach((stock, index) => {
             const price = document.getElementById(`current_price_${index}`).value;
             if(price && parseFloat(price) > 0) {
-                localStorage.setItem(`current_price_${stock.code}`, price);
+                localStorage.setItem(`current_price_${index}_${stock.code}`, price);
             } else {
-                localStorage.removeItem(`current_price_${stock.code}`);
+                localStorage.removeItem(`current_price_${index}_${stock.code}`);
             }
         });
 
         alert("💾 目前填寫的市價已成功儲存！下次開啟網頁會自動帶入。");
     }
 
-    // 【新增功能】清除所有目前填寫的市價與快取紀錄
+    // 清除所有目前填寫的市價與快取紀錄
     function clearPrices() {
         if(confirm("確定要清空畫面上所有市價，並刪除儲存紀錄嗎？")) {
             pastStocks.forEach((stock, index) => {
                 document.getElementById(`past_price_${index}`).value = "";
-                localStorage.removeItem(`past_price_${stock.code}`);
+                localStorage.removeItem(`past_price_${index}_${stock.code}`);
             });
             currentStocks.forEach((stock, index) => {
                 document.getElementById(`current_price_${index}`).value = "";
-                localStorage.removeItem(`current_price_${stock.code}`);
+                localStorage.removeItem(`current_price_${index}_${stock.code}`);
             });
             calculate();
         }
